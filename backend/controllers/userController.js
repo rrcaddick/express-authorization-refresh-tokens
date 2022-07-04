@@ -11,7 +11,7 @@ const User = require("../models/userModel");
 /** @access Public */
 /** @type RequestHandler */
 const registerUser = asyncHandler(async (req, res, next) => {
-  const { name, email, password, confirmPassword } = req.body;
+  const { name, email, password } = req.body;
 
   const errors = validationResult(req);
 
@@ -22,7 +22,22 @@ const registerUser = asyncHandler(async (req, res, next) => {
     throw error;
   }
 
-  res.json({ message: "Register user" });
+  const salt = await bcrypt.genSalt(12);
+  const hashPassword = await bcrypt.hash(password, salt);
+
+  const user = await User.create({ name, email, password: hashPassword });
+
+  if (!user) {
+    res.status(400);
+    throw new Error("Invalid user data");
+  }
+
+  res.status(201).json({
+    _id: user.id,
+    name: user.name,
+    email: user.email,
+    token: generateToken(user._id),
+  });
 });
 
 /** @desc Authenticate a user */
@@ -31,7 +46,20 @@ const registerUser = asyncHandler(async (req, res, next) => {
 /** @type RequestHandler */
 const loginUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
-  res.json({ message: "Login user" });
+
+  const user = await User.findOne({ email });
+
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    res.status(400);
+    throw new Error("Invalid credentials");
+  }
+
+  res.status(200).json({
+    _id: user.id,
+    name: user.name,
+    email: user.email,
+    token: generateToken(user._id),
+  });
 });
 
 /** @desc Get user data */
@@ -39,9 +67,16 @@ const loginUser = asyncHandler(async (req, res, next) => {
 /** @access Private */
 /** @type RequestHandler */
 const getMe = asyncHandler(async (req, res, next) => {
-  const { email, password } = req.body;
-  res.json({ message: "User data" });
+  const {
+    user: { _id: id, name, email },
+  } = req;
+  res.json({ id, name, email });
 });
+
+// Generate JWT
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+};
 
 module.exports = {
   registerUser,

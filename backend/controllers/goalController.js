@@ -7,7 +7,8 @@ const Goal = require("../models/goalModel");
 /** @access Private */
 /** @type RequestHandler  */
 const getGoals = asyncHandler(async (req, res, next) => {
-  const goals = await Goal.find();
+  const { user } = req;
+  const goals = await Goal.find({ user });
   res.status(200).json({ goals });
 });
 
@@ -16,14 +17,17 @@ const getGoals = asyncHandler(async (req, res, next) => {
 /** @access Private */
 /** @type RequestHandler */
 const setGoal = asyncHandler(async (req, res, next) => {
-  const { text } = req.body;
+  const {
+    user,
+    body: { text },
+  } = req;
 
   if (!text) {
     res.status(400);
     throw new Error(" Please add a text field");
   }
 
-  const goal = await Goal.create({ text });
+  const goal = await Goal.create({ user: user._id, text });
 
   res.status(200).json({ goal });
 });
@@ -34,18 +38,26 @@ const setGoal = asyncHandler(async (req, res, next) => {
 /** @type RequestHandler */
 const updateGoal = asyncHandler(async (req, res, next) => {
   const {
+    user,
     params: { id },
     body: { text },
   } = req;
 
-  const goal = await Goal.findByIdAndUpdate(id, { text }, { new: true });
+  const goal = await Goal.findById(id);
 
-  if (!goal) {
+  if (!user || !goal.user.equals(user._id)) {
+    res.status(401);
+    throw new Error("User not authorized");
+  }
+
+  const updatedGoal = await Goal.findByIdAndUpdate(id, { text }, { new: true });
+
+  if (!updatedGoal) {
     res.status(400);
     throw new Error("Goal not found");
   }
 
-  res.status(200).json({ goal });
+  res.status(200).json({ updatedGoal });
 });
 
 /** @desc Delete Goal */
@@ -53,7 +65,17 @@ const updateGoal = asyncHandler(async (req, res, next) => {
 /** @access Private */
 /** @type RequestHandler */
 const deleteGoal = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
+  const {
+    user,
+    params: { id },
+  } = req;
+
+  const goal = await Goal.findById(id);
+
+  if (!user || !goal.user.equals(user._id)) {
+    res.status(401);
+    throw new Error("User not authorized");
+  }
 
   await Goal.findByIdAndDelete(id);
 

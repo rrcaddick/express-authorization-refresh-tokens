@@ -14,7 +14,7 @@ const validateRegisterUser = [
     .isEmail()
     .custom(async (email, { req }) => {
       const user = await User.findOne({ email });
-      if (user) throw new Error("Email already exists");
+      if (user) throw new Error("User already exists");
       return true;
     }),
   body("password").isLength({ min: 4, max: 12 }).withMessage("Password should be between 4 and 12 characters long"),
