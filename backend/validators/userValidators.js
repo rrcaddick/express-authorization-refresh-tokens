@@ -5,7 +5,7 @@ const validateRegisterUser = [
   body("name")
     .notEmpty()
     .withMessage("Name is required")
-    .isAlpha()
+    .isAlpha("en-US", { ignore: " " })
     .withMessage("Name should not contain numbers or special characters")
     .trim(),
   body("email", "Please enter a valid email")

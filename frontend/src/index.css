@@ -135,6 +135,12 @@ h3 {
   margin: 0 0 5px 3px;
 }
 
+.form-group input.invalid,
+.form-group textarea.invalid,
+.form-group select.invalid {
+  border: 1px solid rgb(197, 59, 59);
+}
+
 .btn {
   padding: 10px 20px;
   border: 1px solid #000;
@@ -149,6 +155,16 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.btn:disabled {
+  background: #ccc;
+  border-color: #ccc;
+}
+
+.btn:disabled:hover {
+  transform: scale(1);
+  cursor: not-allowed;
 }
 
 .btn svg {
@@ -167,6 +183,12 @@ h3 {
 
 .btn:hover {
   transform: scale(0.98);
+}
+
+.error {
+  font-size: 12px;
+  color: rgb(197, 59, 59);
+  margin-top: 0px;
 }
 
 .loadingSpinnerContainer {
