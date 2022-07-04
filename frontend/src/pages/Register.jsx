@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useSelector, useDispatch } from "react-redux";
@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { FaUser } from "react-icons/fa";
 
 const Register = () => {
+  const [serverErrors, setServerErrors] = useState({});
   const {
     register,
     handleSubmit,
@@ -25,18 +26,22 @@ const Register = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, isSuccess, isError, user, message, errors: serverErrors } = useSelector((store) => store.auth);
+  const { isLoading, isError, isSuccess, user, message, errors: validationErrors } = useSelector((store) => store.auth);
 
   useEffect(() => {
     if (isError) {
+      setServerErrors({});
       toast.error(message);
+      setServerErrors((state) => validationErrors);
+      dispatch(reset());
     }
-    if (isSuccess) {
+    if (isSuccess && user) {
+      setServerErrors({});
+      toast.success(`User ${user?.name} created successfully`);
       navigate("/");
+      dispatch(reset());
     }
-
-    dispatch(reset());
-  }, [user, isError, isSuccess, message, navigate, dispatch]);
+  }, [user, isError, isSuccess, message, validationErrors, navigate, dispatch]);
 
   const submitHandler = (userData) => {
     dispatch(registerUser(userData));
