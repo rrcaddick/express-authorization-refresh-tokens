@@ -36,11 +36,16 @@ const Header = () => {
           </>
         )}
         {user && (
-          <li>
-            <button className="btn" onClick={logoutHandler}>
-              <FaSignOutAlt /> Logout
-            </button>
-          </li>
+          <>
+            <li>
+              <p>Logged in as {user.name}</p>
+            </li>
+            <li>
+              <button className="btn" onClick={logoutHandler}>
+                <FaSignOutAlt /> Logout
+              </button>
+            </li>
+          </>
         )}
       </ul>
     </header>
