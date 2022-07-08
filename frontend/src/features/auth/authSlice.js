@@ -55,7 +55,7 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, { payload: user }) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.user = user;
+        state.message = `User ${user.name} created successfully`;
       })
       .addCase(registerUser.rejected, (state, { payload: { message, errors } }) => {
         state.isLoading = false;

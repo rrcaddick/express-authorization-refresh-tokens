@@ -30,15 +30,14 @@ const Register = () => {
 
   useEffect(() => {
     if (isError) {
-      setServerErrors({});
       toast.error(message);
       setServerErrors((state) => validationErrors);
       dispatch(reset());
     }
-    if (isSuccess && user) {
+    if (isSuccess) {
       setServerErrors({});
-      toast.success(`User ${user?.name} created successfully`);
-      navigate("/");
+      toast.success(message);
+      navigate("/login");
       dispatch(reset());
     }
   }, [user, isError, isSuccess, message, validationErrors, navigate, dispatch]);
