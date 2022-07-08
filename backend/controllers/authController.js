@@ -63,7 +63,6 @@ const loginUser = asyncHandler(async (req, res, next) => {
     .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
     .status(200)
     .json({
-      _id: user.id,
       name: user.name,
       email: user.email,
       token: generateAccessToken(user._id),
@@ -82,6 +81,57 @@ const logoutUser = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     message: "Logout successfull",
   });
+});
+
+/** @desc Get user data */
+/** @route GET /api/users/me */
+/** @access Private */
+/** @type RequestHandler */
+const refreshToken = asyncHandler(async (req, res, next) => {
+  const {
+    cookies: { refreshToken: refreshTokenCookie },
+  } = req;
+
+  if (!refreshTokenCookie) {
+    res.status(401);
+    throw new Error("Not authorized, no token");
+  }
+
+  const user = await User.findOne({ refreshTokens: refreshTokenCookie });
+
+  // Invalid or reused token
+  if (!user) {
+    await User.revokeRefreshTokens(refreshTokenCookie);
+    res.status(403);
+    throw new Error("Forbidden");
+  }
+
+  try {
+    const refreshSecret = process.env.JWT_REFRESH_SECRET;
+    const { userId } = jwt.verify(refreshTokenCookie, refreshSecret);
+
+    if (userId !== user._id.toString()) {
+      await User.revokeRefreshTokens(refreshTokenCookie);
+      res.status(403);
+      throw new Error("Forbidden");
+    }
+
+    const refreshToken = await generateRefreshToken(user._id, refreshTokenCookie);
+
+    res
+      .clearCookie("refreshToken", refreshTokenCookieOptions)
+      .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
+      .status(200)
+      .json({
+        name: user.name,
+        email: user.email,
+        token: generateAccessToken(user._id),
+      });
+  } catch (error) {
+    await user.removeRefreshToken(refreshTokenCookie);
+    res.status(403).clearCookie("refreshToken", refreshTokenCookieOptions);
+    throw new Error("Not authorized, poes");
+  }
 });
 
 /** @desc Get user data */
@@ -120,5 +170,6 @@ module.exports = {
   registerUser,
   loginUser,
   logoutUser,
+  refreshToken,
   getMe,
 };
