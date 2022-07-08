@@ -16,17 +16,24 @@ const Register = () => {
     formState: { errors, isValid },
   } = useForm({
     defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      name: "Raymond Caddick",
+      email: "rrcaddick@gmail.com",
+      password: "Whatever123",
+      confirmPassword: "Whatever123",
     },
     mode: "all",
   });
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, isError, isSuccess, user, message, errors: validationErrors } = useSelector((store) => store.auth);
+  const {
+    isLoading,
+    isError,
+    isSuccess: { register: registerSuccess },
+    user,
+    message,
+    errors: validationErrors,
+  } = useSelector((store) => store.auth);
 
   useEffect(() => {
     if (isError) {
@@ -34,13 +41,13 @@ const Register = () => {
       setServerErrors((state) => validationErrors);
       dispatch(reset());
     }
-    if (isSuccess) {
+    if (registerSuccess) {
       setServerErrors({});
       toast.success(message);
       navigate("/login");
       dispatch(reset());
     }
-  }, [user, isError, isSuccess, message, validationErrors, navigate, dispatch]);
+  }, [user, isError, registerSuccess, message, validationErrors, navigate, dispatch]);
 
   const submitHandler = (userData) => {
     dispatch(registerUser(userData));

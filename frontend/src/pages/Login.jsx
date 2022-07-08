@@ -14,28 +14,34 @@ const Login = () => {
     formState: { errors, isValid },
   } = useForm({
     defaultValues: {
-      email: "",
-      password: "",
+      email: "rrcaddick@gmail.com",
+      password: "Whatever123",
     },
     mode: "all",
   });
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, isError, isSuccess, user, message } = useSelector((store) => store.auth);
+  const {
+    isLoading,
+    isError,
+    isSuccess: { login },
+    user,
+    message,
+  } = useSelector((store) => store.auth);
 
   useEffect(() => {
     if (isError) {
       toast.error(message);
     }
 
-    if (isSuccess && user) {
+    if (login && user) {
       toast.success(`User ${user?.name} logged in successfully`);
       navigate("/");
     }
 
     dispatch(reset());
-  }, [user, isError, isSuccess, message, navigate, dispatch]);
+  }, [user, isError, login, message, navigate, dispatch]);
 
   const submitHandler = (userData) => {
     dispatch(loginUser(userData));

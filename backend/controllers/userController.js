@@ -5,6 +5,7 @@ const createValidationError = require("../utils/createValidationError");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const { refreshTokenCookieOptions } = require("../config/refreshTokenCookieOptions");
 
 /** @desc Register a new user */
 /** @route POST /api/users */
@@ -43,7 +44,10 @@ const registerUser = asyncHandler(async (req, res, next) => {
 /** @access Public */
 /** @type RequestHandler */
 const loginUser = asyncHandler(async (req, res, next) => {
-  const { email, password } = req.body;
+  const {
+    body: { email, password },
+    cookies: { refreshToken: refreshTokenCookie },
+  } = req;
 
   const user = await User.findOne({ email });
 
@@ -52,11 +56,31 @@ const loginUser = asyncHandler(async (req, res, next) => {
     throw new Error("Invalid credentials");
   }
 
+  const refreshToken = await generateRefreshToken(user._id, refreshTokenCookie);
+
+  res
+    .clearCookie("refreshToken", refreshTokenCookieOptions)
+    .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
+    .status(200)
+    .json({
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      token: generateAccessToken(user._id),
+    });
+});
+
+/** @desc Removes refresh tokens from user */
+/** @route GET /api/users/logout */
+/** @access Private */
+/** @type RequestHandler */
+const logoutUser = asyncHandler(async (req, res, next) => {
+  const { user } = req;
+
+  await user.clearRefreshTokens();
+
   res.status(200).json({
-    _id: user.id,
-    name: user.name,
-    email: user.email,
-    token: generateToken(user._id),
+    message: "Logout successfull",
   });
 });
 
@@ -71,13 +95,30 @@ const getMe = asyncHandler(async (req, res, next) => {
   res.json({ id, name, email });
 });
 
+// Generate Access Token
+const generateAccessToken = (userId) => {
+  const accessExpiry = process.env.ACCESS_TOKEN_EXPIRY;
+  const accessSecret = process.env.JWT_ACCESS_SECRET;
+
+  return jwt.sign({ userId }, accessSecret, { expiresIn: accessExpiry });
+};
+
 // Generate JWT
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+const generateRefreshToken = async (userId, oldRefreshToken) => {
+  const refreshExpiry = process.env.REFRESH_TOKEN_EXPIRY;
+  const refreshSecret = process.env.JWT_REFRESH_SECRET;
+
+  const newRefreshToken = jwt.sign({ userId }, refreshSecret, { expiresIn: refreshExpiry });
+
+  const user = await User.findById(userId);
+  await user.recycleRefreshToken(oldRefreshToken, newRefreshToken);
+
+  return newRefreshToken;
 };
 
 module.exports = {
   registerUser,
   loginUser,
+  logoutUser,
   getMe,
 };

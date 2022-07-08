@@ -7,7 +7,11 @@ const user = JSON.parse(localStorage.getItem("user"));
 const initialState = {
   user: user ? user : null,
   isError: false,
-  isSuccess: false,
+  isSuccess: {
+    login: false,
+    logout: false,
+    register: false,
+  },
   isLoading: false,
   message: "",
   errors: {},
@@ -31,8 +35,14 @@ export const loginUser = createAsyncThunk("auth/loginUser", async (user, thunkAP
   }
 });
 
-export const logout = createAsyncThunk("auth/logout", async () => {
-  await authService.logout();
+export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
+  try {
+    const token = thunkAPI.getState().auth.user.token;
+    return await authService.logout(token);
+  } catch (error) {
+    const errors = (error.response && error.response.data) || error.message || error.toString();
+    return thunkAPI.rejectWithValue(errors);
+  }
 });
 
 const authSlice = createSlice({
@@ -41,7 +51,11 @@ const authSlice = createSlice({
   reducers: {
     reset: (state) => {
       state.isError = false;
-      state.isSuccess = false;
+      state.isSuccess = {
+        login: false,
+        logout: false,
+        register: false,
+      };
       state.isLoading = false;
       state.message = "";
       state.errors = {};
@@ -54,7 +68,7 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, { payload: user }) => {
         state.isLoading = false;
-        state.isSuccess = true;
+        state.isSuccess.register = true;
         state.message = `User ${user.name} created successfully`;
       })
       .addCase(registerUser.rejected, (state, { payload: { message, errors } }) => {
@@ -69,7 +83,7 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, { payload: user }) => {
         state.isLoading = false;
-        state.isSuccess = true;
+        state.isSuccess.login = true;
         state.user = user;
       })
       .addCase(loginUser.rejected, (state, { payload: { message, errors } }) => {
@@ -79,9 +93,20 @@ const authSlice = createSlice({
         state.errors = errors;
         state.user = null;
       })
+      .addCase(logout.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(logout.fulfilled, (state) => {
         state.isLoading = false;
-        state.isSuccess = true;
+        state.isSuccess.logout = true;
+        state.message = `Logged out ${state.user.name} successfully`;
+        state.user = null;
+      })
+      .addCase(logout.rejected, (state, { payload: { message, errors } }) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = message;
+        state.errors = errors;
         state.user = null;
       });
   },

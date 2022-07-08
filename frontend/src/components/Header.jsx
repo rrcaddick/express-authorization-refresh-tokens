@@ -1,19 +1,36 @@
+import { useEffect } from "react";
 import { FaSignInAlt, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logout, reset } from "../features/auth/authSlice";
+import { toast } from "react-toastify";
 
 const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user } = useSelector((store) => store.auth);
+  const {
+    user,
+    isError,
+    isSuccess: { logout: logoutSuccess },
+    message,
+  } = useSelector((store) => store.auth);
 
   const logoutHandler = (e) => {
     dispatch(logout());
-    dispatch(reset());
-    navigate("/login");
   };
+
+  useEffect(() => {
+    if (logoutSuccess) {
+      toast.success(message);
+      navigate("/login");
+      dispatch(reset());
+    }
+
+    if (isError) {
+      toast.error(message);
+    }
+  }, [logoutSuccess, isError, message, navigate, dispatch]);
 
   return (
     <header className="header">
