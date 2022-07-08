@@ -1,7 +1,9 @@
 const path = require("path");
-const express = require("express");
-const colors = require("colors");
 const dotenv = require("dotenv").config();
+const colors = require("colors");
+const express = require("express");
+const cors = require("cors");
+const { corsOptions } = require("./config/corsConfig");
 const { errorHandler } = require("./middleware/errorMiddleware");
 const connectDb = require("./config/db");
 const port = process.env.PORT || 5000;
@@ -9,6 +11,8 @@ const port = process.env.PORT || 5000;
 connectDb();
 
 const app = express();
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
