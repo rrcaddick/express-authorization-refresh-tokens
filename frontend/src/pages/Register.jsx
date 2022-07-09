@@ -16,10 +16,10 @@ const Register = () => {
     formState: { errors, isValid },
   } = useForm({
     defaultValues: {
-      name: "Raymond Caddick",
-      email: "rrcaddick@gmail.com",
-      password: "Whatever123",
-      confirmPassword: "Whatever123",
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
     },
     mode: "all",
   });

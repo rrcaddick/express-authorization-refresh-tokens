@@ -45,15 +45,6 @@ export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
   }
 });
 
-export const refreshToken = createAsyncThunk("auth/refreshToken", async (_, thunkAPI) => {
-  try {
-    return await authService.refreshToken();
-  } catch (error) {
-    const errors = (error.response && error.response.data) || error.message || error.toString();
-    return thunkAPI.rejectWithValue(errors);
-  }
-});
-
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -68,6 +59,9 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.message = "";
       state.errors = {};
+    },
+    refreshAccessToken: (state, { payload: token }) => {
+      state.user.token = token;
     },
   },
   extraReducers: (builder) => {
@@ -117,25 +111,10 @@ const authSlice = createSlice({
         state.message = message;
         state.errors = errors;
         state.user = null;
-      })
-      .addCase(refreshToken.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(refreshToken.fulfilled, (state, { payload: user }) => {
-        state.isLoading = false;
-        state.isSuccess.refresh = true;
-        state.user = user;
-      })
-      .addCase(refreshToken.rejected, (state, { payload: { message, errors } }) => {
-        state.isLoading = false;
-        state.isError = true;
-        state.message = message;
-        state.errors = errors;
-        state.user = null;
       });
   },
 });
 
-export const { reset } = authSlice.actions;
+export const { reset, refreshAccessToken } = authSlice.actions;
 
 export default authSlice.reducer;

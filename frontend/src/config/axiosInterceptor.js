@@ -1,10 +1,8 @@
 import axios from "axios";
-import { EnhancedStore } from "@reduxjs/toolkit";
-import poes from "../features/auth/authService";
-import { refreshToken } from "../features/auth/authSlice";
+import authService from "../features/auth/authService";
+import { refreshAccessToken } from "../features/auth/authSlice";
 export const authAxios = axios.create();
 
-/** @param {EnhancedStore} store */
 const authenticationProvider = (store) => {
   // Add access token to all requests
   authAxios.interceptors.request.use(
@@ -27,13 +25,22 @@ const authenticationProvider = (store) => {
   authAxios.interceptors.response.use(
     (response) => response,
     async (error) => {
-      const originalRequest = error.config;
-      if (error.response.status === 403 && !originalRequest._retry) {
-        originalRequest._retry = true;
-        // const { token } = await poes.refreshToken();
-        store.dispatch(refreshToken());
-        // authAxios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        return authAxios(originalRequest);
+      const config = error?.config;
+
+      if (error?.response?.status === 403 && !config?.isRetry) {
+        config.isRetry = true;
+
+        const { token } = await authService.refreshToken();
+        store.dispatch(refreshAccessToken(token));
+
+        if (token) {
+          config.headers = {
+            ...config.headers,
+            Authorization: `Bearer ${token}`,
+          };
+        }
+
+        return axios(config);
       }
       return Promise.reject(error);
     }
