@@ -11,6 +11,7 @@ const initialState = {
     login: false,
     logout: false,
     register: false,
+    refresh: false,
   },
   isLoading: false,
   message: "",
@@ -37,8 +38,16 @@ export const loginUser = createAsyncThunk("auth/loginUser", async (user, thunkAP
 
 export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
   try {
-    const token = thunkAPI.getState().auth.user.token;
-    return await authService.logout(token);
+    return await authService.logout();
+  } catch (error) {
+    const errors = (error.response && error.response.data) || error.message || error.toString();
+    return thunkAPI.rejectWithValue(errors);
+  }
+});
+
+export const refreshToken = createAsyncThunk("auth/refreshToken", async (_, thunkAPI) => {
+  try {
+    return await authService.refreshToken();
   } catch (error) {
     const errors = (error.response && error.response.data) || error.message || error.toString();
     return thunkAPI.rejectWithValue(errors);
@@ -103,6 +112,21 @@ const authSlice = createSlice({
         state.user = null;
       })
       .addCase(logout.rejected, (state, { payload: { message, errors } }) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = message;
+        state.errors = errors;
+        state.user = null;
+      })
+      .addCase(refreshToken.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(refreshToken.fulfilled, (state, { payload: user }) => {
+        state.isLoading = false;
+        state.isSuccess.refresh = true;
+        state.user = user;
+      })
+      .addCase(refreshToken.rejected, (state, { payload: { message, errors } }) => {
         state.isLoading = false;
         state.isError = true;
         state.message = message;

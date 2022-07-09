@@ -74,11 +74,15 @@ const loginUser = asyncHandler(async (req, res, next) => {
 /** @access Private */
 /** @type RequestHandler */
 const logoutUser = asyncHandler(async (req, res, next) => {
-  const { user } = req;
+  const {
+    cookies: { refreshToken: refreshTokenCookie },
+  } = req;
 
-  await user.clearRefreshTokens();
+  if (refreshTokenCookie) {
+    await User.revokeRefreshTokens(refreshTokenCookie);
+  }
 
-  res.status(200).json({
+  res.status(200).clearCookie("refreshToken", refreshTokenCookieOptions).json({
     message: "Logout successfull",
   });
 });
