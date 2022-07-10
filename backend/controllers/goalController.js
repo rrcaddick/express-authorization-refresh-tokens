@@ -46,7 +46,7 @@ const updateGoal = asyncHandler(async (req, res, next) => {
   const goal = await Goal.findById(id);
 
   if (!user || !goal.user.equals(user._id)) {
-    res.status(401);
+    res.status(403);
     throw new Error("User not authorized");
   }
 

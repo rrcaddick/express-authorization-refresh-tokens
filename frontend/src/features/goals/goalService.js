@@ -4,14 +4,22 @@ const API_URL = "/api/goals/";
 
 // Create user goal
 const createGoal = async (goalData) => {
-  const response = await authAxios.post(API_URL, goalData);
-  return response.data;
+  try {
+    const response = await authAxios.post(API_URL, goalData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 // Get all user goals
 const getGoals = async () => {
-  const response = await authAxios.get(API_URL);
-  return response.data;
+  try {
+    const response = await authAxios.get(API_URL);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 // Delete user goals

@@ -106,7 +106,7 @@ const refreshToken = asyncHandler(async (req, res, next) => {
   // Invalid or reused token
   if (!user) {
     await User.revokeRefreshTokens(refreshTokenCookie);
-    res.status(403);
+    res.status(401);
     throw new Error("Forbidden");
   }
 
@@ -116,7 +116,7 @@ const refreshToken = asyncHandler(async (req, res, next) => {
 
     if (userId !== user._id.toString()) {
       await User.revokeRefreshTokens(refreshTokenCookie);
-      res.status(403);
+      res.status(401);
       throw new Error("Forbidden");
     }
 
@@ -133,8 +133,8 @@ const refreshToken = asyncHandler(async (req, res, next) => {
       });
   } catch (error) {
     await user.removeRefreshToken(refreshTokenCookie);
-    res.status(403).clearCookie("refreshToken", refreshTokenCookieOptions);
-    throw new Error("Not authorized, poes");
+    res.status(401).clearCookie("refreshToken", refreshTokenCookieOptions);
+    throw new Error("Not authorized");
   }
 });
 

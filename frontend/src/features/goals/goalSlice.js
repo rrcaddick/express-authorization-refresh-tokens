@@ -51,10 +51,10 @@ const goalSlice = createSlice({
       .addCase(createGoal.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(createGoal.fulfilled, (state, { payload: { goal } }) => {
+      .addCase(createGoal.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.goals.push(goal);
+        if (payload?.goal) state.goals.push(payload?.goal);
       })
       .addCase(createGoal.rejected, (state, { payload: { errors, message } }) => {
         state.isLoading = false;
@@ -64,10 +64,10 @@ const goalSlice = createSlice({
       .addCase(getGoals.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(getGoals.fulfilled, (state, { payload: { goals } }) => {
+      .addCase(getGoals.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.goals = goals;
+        state.goals = payload?.goals || [];
       })
       .addCase(getGoals.rejected, (state, { payload: { errors, message } }) => {
         state.isLoading = false;
