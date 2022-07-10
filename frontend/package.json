@@ -24,7 +24,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "debug": "cross-env BROWSER_ARGS=--user-data-dir=remote-profile --remote-debugging-port=9222 BROWSER=chrome react-scripts start"
+    "debug": "env-cmd -e development react-scripts start "
   },
   "eslintConfig": {
     "extends": [
@@ -45,7 +45,8 @@
     ]
   },
   "devDependencies": {
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "env-cmd": "^10.1.0"
   },
   "resolutions": {
     "open": "7.4.2"

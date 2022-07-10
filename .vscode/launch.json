@@ -6,21 +6,14 @@
       "port": 9222,
       "request": "attach",
       "type": "chrome",
+      "urlFilter": "http://localhost:3000/*", // use urlFilter instead of url!
       "webRoot": "${workspaceFolder}"
     },
     {
+      "name": "Attach to Node",
       "type": "node",
       "request": "attach",
-      "name": "Attach debugger",
-      "restart": true,
-      "processId": "${command:PickProcess}"
-    },
-    {
-      "name": "Launch Chrome",
-      "request": "launch",
-      "type": "pwa-chrome",
-      "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}/frontend"
+      "restart": true
     }
   ]
 }
